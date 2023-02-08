@@ -24,10 +24,15 @@ const io = require("socket.io")(2000, {
 
 io.on("connection", (socket) => {
   console.log(`socket connected id: ${socket.id}`);
-  socket.on("send-message", (message, room) => {
-    console.log("gjhgj", room);
-        if (room === "") socket.broadcast.emit("recieve-message", message, room);
-        else socket.to(room).emit("recieve-message", message, room );  
+  socket.on("send-message", async (message, room, sender) => {
+    if (room === "") socket.broadcast.emit("recieve-message", message, room);
+    else {
+       authController.addChatSocket(sender, message, room);
+      console.log(message);
+      const alldata = await authController.getalldata();
+      alldata.push(message);
+      io.sockets.emit("all-chats", alldata);
+    }
   });
 
   socket.on("join-room", (room) => {
